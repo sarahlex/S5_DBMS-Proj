@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventify - Service Provider</title>
+    <style>
+        /* General Reset */
+        body, h1, h3, p {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Overall Layout */
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        /* Banner */
+        .banner {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .banner h1 {
+            margin: 0;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 200px;
+            background-color: #2c3e50;
+            color: white;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            padding-top: 20px;
+            height: calc(100% - 60px);
+        }
+
+        .sidebar button {
+            background-color: #34495e;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
+        .sidebar button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 220px;
+            margin-top: 60px;
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        /* Service Provider Grid (3x3 Events) */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .grid-item {
+            background-color: white;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            text-align: center;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .grid-item:hover {
+            transform: scale(1.05);
+        }
+
+        .grid-item h3 {
+            margin-top: 10px;
+            font-size: 18px;
+        }
+
+        .grid-item p {
+            color: #555;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* Calendar */
+        .calendar {
+            width: 30%;
+            background-color: white;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .calendar h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .calendar-nav button {
+            background-color: transparent;
+            color: #2980b9;
+            border: none;
+            cursor: pointer;
+            font-size: 30px;
+        }
+
+        .calendar-nav button:hover {
+            color: #007bff;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .calendar-grid div {
+            padding: 10px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+        }
+
+        .calendar-grid div.booked {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .calendar-grid div.selected {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .calendar-grid div.interested {
+            background-color: #f39c12; /* Highlight color for interested events */
+            color: white;
+        }
+
+        /* Chat Feature */
+        .chat-popup {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            height: 500px;
+            background-color: white;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chat-box {
+            max-height: 350px;
+            overflow-y: scroll;
+            margin-bottom: 20px;
+            padding-right: 10px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .chat-input {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .chat-input button {
+            width: 15%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .chat-input button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Banner -->
+    <div class="banner">
+        <h1>Eventify</h1>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <button>Profile</button>
+        <button id="chatButton">Chat</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+
+        <!-- Service Provider Grid (3x3 Events) -->
+        <div class="grid">
+            <div class="grid-item" data-date="2025-02-05">
+                <h3>Event 1</h3>
+                <p>Description of Event 1. This is where the details of the event go.</p>
+                <p><strong>Date:</strong> 2025-02-05</p>
+                <button onclick="sendInterest('Event 1', '2025-02-05', 'Description of Event 1')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-06">
+                <h3>Event 2</h3>
+                <p>Description of Event 2. Details of this event go here.</p>
+                <p><strong>Date:</strong> 2025-02-06</p>
+                <button onclick="sendInterest('Event 2', '2025-02-06', 'Description of Event 2')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-07">
+                <h3>Event 3</h3>
+                <p>Description of Event 3. Here is the detailed description.</p>
+                <p><strong>Date:</strong> 2025-02-07</p>
+                <button onclick="sendInterest('Event 3', '2025-02-07', 'Description of Event 3')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-08">
+                <h3>Event 4</h3>
+                <p>Description of Event 4. Details of the event.</p>
+                <p><strong>Date:</strong> 2025-02-08</p>
+                <button onclick="sendInterest('Event 4', '2025-02-08', 'Description of Event 4')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-09">
+                <h3>Event 5</h3>
+                <p>Description of Event 5. Event details here.</p>
+                <p><strong>Date:</strong> 2025-02-09</p>
+                <button onclick="sendInterest('Event 5', '2025-02-09', 'Description of Event 5')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-10">
+                <h3>Event 6</h3>
+                <p>Description of Event 6. More event details.</p>
+                <p><strong>Date:</strong> 2025-02-10</p>
+                <button onclick="sendInterest('Event 6', '2025-02-10', 'Description of Event 6')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-11">
+                <h3>Event 7</h3>
+                <p>Description of Event 7.</p>
+                <p><strong>Date:</strong> 2025-02-11</p>
+                <button onclick="sendInterest('Event 7', '2025-02-11', 'Description of Event 7')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-12">
+                <h3>Event 8</h3>
+                <p>Description of Event 8.</p>
+                <p><strong>Date:</strong> 2025-02-12</p>
+                <button onclick="sendInterest('Event 8', '2025-02-12', 'Description of Event 8')">Interested</button>
+            </div>
+            <div class="grid-item" data-date="2025-02-13">
+                <h3>Event 9</h3>
+                <p>Description of Event 9.</p>
+                <p><strong>Date:</strong> 2025-02-13</p>
+                <button onclick="sendInterest('Event 9', '2025-02-13', 'Description of Event 9')">Interested</button>
+            </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar">
+            <h3>Event Calendar</h3>
+            <div class="calendar-nav">
+                <button onclick="navigateMonth(-1)">&lt;</button>
+                <span id="calendar-month">February 2025</span>
+                <button onclick="navigateMonth(1)">&gt;</button>
+            </div>
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Calendar Days -->
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Chat Popup -->
+    <div id="chat-popup" class="chat-popup">
+        <div class="chat-header">
+            Chat with Event Organizer
+        </div>
+        <div class="chat-box" id="chat-box">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="chat-input">
+            <input type="text" id="chat-input" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Store interested events with descriptions
+        const interestedEvents = {};
+
+        // Handle Interest button
+        function sendInterest(eventName, eventDate, eventDescription) {
+            alert('You have shown interest in ' + eventName);
+            if (!interestedEvents[eventDate]) {
+                interestedEvents[eventDate] = [];
+            }
+            interestedEvents[eventDate].push(eventDescription);
+            highlightEventDate(eventDate); // Highlight the date in the calendar
+        }
+
+        // Highlight the date in the calendar
+        function highlightEventDate(eventDate) {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const dayDivs = calendarGrid.getElementsByTagName('div');
+            const dateParts = eventDate.split('-');
+            const year = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]) - 1; // Month is 0-based
+            const day = parseInt(dateParts[2]);
+
+            // Calculate the index of the day in the calendar
+            const firstDay = new Date(year, month, 1).getDay();
+            const index = firstDay + day - 1; // Adjust for the first day of the month
+
+            if (dayDivs[index]) {
+                dayDivs[index].classList.add('interested'); // Add class to highlight
+            }
+        }
+
+        // Open chat popup
+        document.getElementById("chatButton").addEventListener("click", function() {
+            document.getElementById("chat-popup").style.display = "block";
+        });
+
+        // Send message
+        function sendMessage() {
+            const input = document.getElementById('chat-input').value;
+            if (input.trim()) {
+                const chatBox = document.getElementById('chat-box');
+                const message = document.createElement('div');
+                message.className = 'chat-message';
+                message.textContent = 'You: ' + input;
+                chatBox.appendChild(message);
+                document.getElementById('chat-input').value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        // Navigate calendar months
+        let currentMonth = new Date().getMonth(); // Current month (0-based index)
+        let currentYear = new Date().getFullYear();
+
+        // Sample booked dates
+        const bookedDates = ["2025-02-05", "2025-02-07", "2025-02-09"];
+
+        function navigateMonth(direction) {
+            currentMonth += direction;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            } else if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            document.getElementById('calendar-month').textContent = new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+            updateCalendar();
+        }
+
+        function updateCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const lastDate = new Date(currentYear, currentMonth + 1, 0).getDate();
+            calendarGrid.innerHTML = '';
+            for (let i = 0; i < firstDay; i++) {
+                calendarGrid.innerHTML += '<div></div>';
+            }
+            for (let i = 1; i <= lastDate; i++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = i;
+                dayDiv.onclick = function() {
+                    highlightDate(dayDiv);
+                    showInterestedEvents(currentYear, currentMonth, i);
+                };
+                // Check if the date is booked
+                const fullDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                if (bookedDates.includes(fullDate)) {
+                    dayDiv.classList.add('booked'); // Highlight booked dates
+                }
+                calendarGrid.appendChild(dayDiv);
+            }
+        }
+
+        function highlightDate(dayDiv) {
+            const selectedDays = document.querySelectorAll('.calendar-grid div.selected');
+            selectedDays.forEach(day => day.classList.remove('selected')); // Remove highlight from previously selected days
+            dayDiv.classList.add('selected'); // Highlight the selected day
+        }
+
+        function showInterestedEvents(year, month, day) {
+            const fullDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const events = interestedEvents[fullDate] || [];
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<div class="chat-message">Events on ${fullDate}: ${events.length > 0 ? events.join(', ') : 'No events booked.'}</div>`;
+        }
+
+        updateCalendar(); // Initialize calendar display
+    </script>
+
+</body>
+</html>
