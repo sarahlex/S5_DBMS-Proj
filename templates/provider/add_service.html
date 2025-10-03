@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Add New Service</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    <div class="mb-3">
+                        <label for="service_name" class="form-label">Service Name</label>
+                        <input type="text" class="form-control" id="service_name" name="service_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price</label>
+                        <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="availability" class="form-label">Availability</label>
+                        <select class="form-select" id="availability" name="availability" required>
+                            <option value="available">Available</option>
+                            <option value="unavailable">Unavailable</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Add Service</button>
+                    <a href="{{ url_for('provider_dashboard') }}" class="btn btn-secondary w-100 mt-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
