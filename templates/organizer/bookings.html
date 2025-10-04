@@ -1,0 +1,115 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h3><i class="fas fa-user-circle me-2"></i>Organizer</h3>
+    </div>
+    <div class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('create_event') }}">
+                    <i class="fas fa-plus-circle"></i>Create Event
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_dashboard') }}">
+                    <i class="fas fa-calendar-check"></i>My Events
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('organizer_bookings') }}">
+                    <i class="fas fa-bookmark"></i>My Bookings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_sponsorships') }}">
+                    <i class="fas fa-handshake"></i>Sponsorships
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-bookmark me-2"></i>My Bookings</h2>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Booked Services</h5>
+    </div>
+    <div class="card-body">
+        {% if bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Event</th>
+                            <th>Provider</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Booked Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td>
+                                <strong>{{ booking.service_name }}</strong>
+                            </td>
+                            <td>{{ booking.event_name }}</td>
+                            <td>{{ booking.provider_name }}</td>
+                            <td>${{ booking.price }}</td>
+                            <td>
+                                <span class="badge {% if booking.status == 'confirmed' %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ booking.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ booking.booked_at.strftime('%Y-%m-%d %H:%M') if booking.booked_at else 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Total Cost -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ bookings|length }}</div>
+                        <div class="stat-label">Total Bookings</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-number">
+                            ${{ bookings|sum(attribute='price') }}
+                        </div>
+                        <div class="stat-label">Total Spent</div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-bookmark fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Bookings Yet</h4>
+                <p class="text-muted">You haven't booked any services yet.</p>
+                <a href="{{ url_for('organizer_dashboard') }}" class="btn btn-primary">
+                    <i class="fas fa-concierge-bell me-2"></i>Browse Services
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

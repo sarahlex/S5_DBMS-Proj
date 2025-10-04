@@ -1,6 +1,6 @@
 {% extends "base_dashboard.html" %}
 
-{% block title %}Add Service{% endblock %}
+{% block title %}Edit Service{% endblock %}
 
 {% block sidebar %}
 <div class="sidebar">
@@ -36,7 +36,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add New Service</h2>
+    <h2 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Service</h2>
     <a href="{{ url_for('provider_dashboard') }}" class="btn btn-secondary">
         <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
     </a>
@@ -46,33 +46,34 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h5 class="mb-0">New Service Details</h5>
+                <h5 class="mb-0">Edit Service Details</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="">
                     <div class="mb-3">
                         <label for="service_name" class="form-label">Service Name</label>
-                        <input type="text" class="form-control" id="service_name" name="service_name" required>
+                        <input type="text" class="form-control" id="service_name" name="service_name" value="{{ service.service_name }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="price" class="form-label">Price</label>
-                        <input type="number" step="0.01" class="form-control" id="price" name="price" required>
+                        <input type="number" step="0.01" class="form-control" id="price" name="price" value="{{ service.price }}" required>
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        <textarea class="form-control" id="description" name="description" rows="3">{{ service.description }}</textarea>
                     </div>
                     <div class="mb-3">
                         <label for="availability" class="form-label">Availability</label>
                         <select class="form-select" id="availability" name="availability" required>
-                            <option value="Available">Available</option>
-                            <option value="Not Available">Not Available</option>
+                            <option value="Available" {% if service.availability == 'Available' %}selected{% endif %}>Available</option>
+                            <option value="Not Available" {% if service.availability == 'Not Available' %}selected{% endif %}>Not Available</option>
                         </select>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Add Service</button>
+                    <button type="submit" class="btn btn-primary w-100">Update Service</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

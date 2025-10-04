@@ -1,0 +1,134 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Sponsorship Requests{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h3><i class="fas fa-user-circle me-2"></i>Organizer</h3>
+    </div>
+    <div class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('create_event') }}">
+                    <i class="fas fa-plus-circle"></i>Create Event
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_dashboard') }}">
+                    <i class="fas fa-calendar-check"></i>My Events
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_bookings') }}">
+                    <i class="fas fa-bookmark"></i>My Bookings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('organizer_sponsorships') }}">
+                    <i class="fas fa-handshake"></i>Sponsorships
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-handshake me-2"></i>Sponsorship Requests</h2>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSponsorshipModal">
+        <i class="fas fa-plus-circle me-2"></i>Create Request
+    </button>
+</div>
+
+<!-- Create Sponsorship Modal -->
+<div class="modal fade" id="createSponsorshipModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Sponsorship Request</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_sponsorship') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Select Event</label>
+                        <select name="event_id" class="form-select" required>
+                            <option value="">Choose an event...</option>
+                            {% for event in events %}
+                            <option value="{{ event.event_id }}">{{ event.event_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sponsorship Amount</label>
+                        <input type="number" step="0.01" name="sponsorship_amount" class="form-control" placeholder="Enter sponsorship amount needed" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Sponsorship Details</label>
+                        <textarea name="details" class="form-control" rows="4" 
+                                  placeholder="Describe what kind of sponsorship you're looking for..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">My Sponsorship Requests</h5>
+            </div>
+            <div class="card-body">
+                {% if sponsorships %}
+                    {% for sponsorship in sponsorships %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="card-title">{{ sponsorship.event_name }}</h6>
+                                    <p class="card-text">
+                                        <strong>Amount Needed:</strong> ${{ sponsorship.sponsorship_amount }}<br>
+                                        {{ sponsorship.details }}
+                                    </p>
+                                    <small class="text-muted">Created: {{ sponsorship.created_at.strftime('%Y-%m-%d %H:%M') if sponsorship.created_at else 'N/A' }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge 
+                                        {% if sponsorship.status == 'open' %}bg-warning
+                                        {% elif sponsorship.status == 'accepted' %}bg-success
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ sponsorship.status|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-handshake fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Sponsorship Requests</h4>
+                        <p class="text-muted">Create your first sponsorship request to get support for your events.</p>
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createSponsorshipModal">
+                            <i class="fas fa-plus-circle me-2"></i>Create First Request
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,137 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Sponsorship Opportunities{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h3><i class="fas fa-briefcase me-2"></i>Provider</h3>
+    </div>
+    <div class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('provider_sponsorships') }}">
+                    <i class="fas fa-handshake"></i>Sponsorship Opportunities
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_accepted_sponsorships') }}">
+                    <i class="fas fa-check-circle"></i>Accepted Sponsorships
+                </a>
+            </li>
+             <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_available_events') }}">
+                    <i class="fas fa-calendar-alt"></i>Available Events
+                </a>
+            </li>
+            <!-- NEW LINKS ADDED HERE -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_dashboard') }}#myservices">
+                    <i class="fas fa-concierge-bell"></i>My Services
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_dashboard') }}#mybookings">
+                    <i class="fas fa-bookmark"></i>My Bookings
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-handshake me-2"></i>Sponsorship Opportunities</h2>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Open Sponsorship Requests</h5>
+    </div>
+    <div class="card-body">
+        {% if sponsorships %}
+            {% for sponsorship in sponsorships %}
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">{{ sponsorship.event_name }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="card-title">Sponsorship Details:</h6>
+                            <p class="card-text">
+                                <strong>Amount Requested:</strong> ${{ sponsorship.sponsorship_amount }}<br>
+                                {{ sponsorship.details }}
+                            </p>
+                            
+                            <div class="organizer-contact mt-4 p-3 bg-light rounded">
+                                <h6 class="mb-3"><i class="fas fa-user me-2"></i>Organizer Contact Information:</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1">
+                                            <i class="fas fa-user-tie me-2"></i>
+                                            <strong>Name:</strong> {{ sponsorship.organizer_name }}
+                                        </p>
+                                        <p class="mb-1">
+                                            <i class="fas fa-phone me-2"></i>
+                                            <strong>Phone:</strong> {{ sponsorship.organizer_phone }}
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1">
+                                            <i class="fas fa-envelope me-2"></i>
+                                            <strong>Email:</strong> {{ sponsorship.organizer_email }}
+                                        </p>
+                                        <p class="mb-0">
+                                            <i class="fas fa-calendar me-2"></i>
+                                            <strong>Posted:</strong> {{ sponsorship.created_at.strftime('%Y-%m-%d') if sponsorship.created_at else 'N/A' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 d-flex flex-column justify-content-center align-items-center">
+                                <span class="badge bg-warning mb-3 p-2">Open for Sponsorship</span>
+                                <a href="{{ url_for('accept_sponsorship', sponsorship_id=sponsorship.sponsorship_id) }}" 
+                                   class="btn btn-success w-100"
+                                   onclick="return confirm('Are you sure you want to accept this sponsorship request?')">
+                                    <i class="fas fa-check me-2"></i>Accept Sponsorship
+                                </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <!-- Sponsorship Stats -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ sponsorships|length }}</div>
+                        <div class="stat-label">Open Opportunities</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ sponsorships|selectattr("organizer_phone")|list|length }}</div>
+                        <div class="stat-label">With Contact Info</div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-handshake fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Open Sponsorships</h4>
+                <p class="text-muted">There are currently no open sponsorship requests from organizers.</p>
+                <p class="text-muted small">Check back later for new sponsorship opportunities.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

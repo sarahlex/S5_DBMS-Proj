@@ -1,0 +1,96 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Accepted Sponsorships{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h3><i class="fas fa-briefcase me-2"></i>Provider</h3>
+    </div>
+    <div class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_sponsorships') }}">
+                    <i class="fas fa-handshake"></i>Sponsorship Opportunities
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('provider_accepted_sponsorships') }}">
+                    <i class="fas fa-check-circle"></i>Accepted Sponsorships
+                </a>
+            </li>
+             <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_available_events') }}">
+                    <i class="fas fa-calendar-alt"></i>Available Events
+                </a>
+            </li>
+            <!-- NEW LINKS ADDED HERE -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_dashboard') }}#myservices">
+                    <i class="fas fa-concierge-bell"></i>My Services
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('provider_dashboard') }}#mybookings">
+                    <i class="fas fa-bookmark"></i>My Bookings
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-check-circle me-2"></i>My Accepted Sponsorships</h2>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Your Sponsored Events</h5>
+    </div>
+    <div class="card-body">
+        {% if sponsorships %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Amount</th>
+                            <th>Organizer</th>
+                            <th>Contact</th>
+                            <th>Accepted On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sponsorship in sponsorships %}
+                        <tr>
+                            <td><strong>{{ sponsorship.event_name }}</strong></td>
+                            <td>${{ sponsorship.sponsorship_amount }}</td>
+                            <td>{{ sponsorship.organizer_name }}</td>
+                            <td>{{ sponsorship.organizer_phone }}</td>
+                            <td>{{ sponsorship.accepted_at.strftime('%Y-%m-%d') if sponsorship.accepted_at else 'N/A' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Accepted Sponsorships Yet</h4>
+                <p class="text-muted">When you accept a sponsorship request, it will appear here.</p>
+                <a href="{{ url_for('provider_sponsorships') }}" class="btn btn-primary">
+                    <i class="fas fa-handshake me-2"></i>Find Opportunities
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
