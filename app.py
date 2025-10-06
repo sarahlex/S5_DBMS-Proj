@@ -119,6 +119,19 @@ def create_event():
     
     return render_template('organizer/create_event.html')
 
+@app.route('/organizer/available_services')
+def organizer_available_services():
+    if 'loggedin' not in session or session['role'] != 'organizer':
+        return redirect('/login')
+    
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+    # Get available services
+    cursor.execute('SELECT s.*, u.name as provider_name FROM services s JOIN users u ON s.provider_id = u.user_id WHERE s.availability = "available"')
+    services = cursor.fetchall()
+    
+    return render_template('organizer/available_services.html', services=services)
+
 @app.route('/organizer/book_service/<int:service_id>', methods=['POST'])
 def book_service(service_id):
     if 'loggedin' not in session or session['role'] != 'organizer':
@@ -159,11 +172,13 @@ def organizer_sponsorships():
     
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     
-    # Get organizer's sponsorship requests
-    cursor.execute('''SELECT sr.*, e.event_name 
+    # Get organizer's sponsorship requests and include provider details if accepted
+    cursor.execute('''SELECT sr.*, e.event_name, p.name AS provider_name, p.phone AS provider_phone
                    FROM sponsorship_requests sr 
                    JOIN events e ON sr.event_id = e.event_id 
-                   WHERE sr.organizer_id = %s''', (session['user_id'],))
+                   LEFT JOIN users p ON sr.provider_id = p.user_id
+                   WHERE sr.organizer_id = %s
+                   ORDER BY sr.created_at DESC''', (session['user_id'],))
     sponsorships = cursor.fetchall()
     
     # Get events for creating new sponsorship requests
@@ -171,6 +186,7 @@ def organizer_sponsorships():
     events = cursor.fetchall()
     
     return render_template('organizer/sponsorships.html', sponsorships=sponsorships, events=events)
+
 
 @app.route('/organizer/create_sponsorship', methods=['POST'])
 def create_sponsorship():
@@ -189,6 +205,41 @@ def create_sponsorship():
     flash('Sponsorship request created successfully!', 'success')
     return redirect('/organizer/sponsorships')
 
+@app.route('/organizer/delete_event/<int:event_id>', methods=['POST'])
+def delete_event(event_id):
+    if 'loggedin' not in session or session['role'] != 'organizer':
+        return redirect('/login')
+    
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+    try:
+        # First, check if the event belongs to the current organizer
+        cursor.execute('SELECT * FROM events WHERE event_id = %s AND organizer_id = %s', 
+                      (event_id, session['user_id']))
+        event = cursor.fetchone()
+        
+        if not event:
+            flash('Event not found or you do not have permission to delete it!', 'danger')
+            return redirect('/organizer/dashboard')
+        
+        # Delete related records first to maintain referential integrity
+        # Delete bookings for this event
+        cursor.execute('DELETE FROM bookings WHERE event_id = %s', (event_id,))
+        
+        # Delete sponsorship requests for this event
+        cursor.execute('DELETE FROM sponsorship_requests WHERE event_id = %s', (event_id,))
+        
+        # Finally delete the event
+        cursor.execute('DELETE FROM events WHERE event_id = %s', (event_id,))
+        
+        mysql.connection.commit()
+        flash('Event deleted successfully!', 'success')
+        
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'Error deleting event: {str(e)}', 'danger')
+    
+    return redirect('/organizer/dashboard')
 @app.route('/provider/dashboard')
 def provider_dashboard():
     if 'loggedin' not in session or session['role'] != 'provider':
@@ -282,6 +333,54 @@ def delete_service(service_id):
     
     return redirect(url_for('provider_dashboard'))
 
+@app.route('/provider/delete_account')
+def delete_provider_account():
+    if 'loggedin' not in session or session['role'] != 'provider':
+        return redirect(url_for('login'))
+    
+    provider_id = session['user_id']
+    
+    try:
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        
+        # Step 1: Find all services offered by the provider
+        cursor.execute('SELECT service_id FROM services WHERE provider_id = %s', (provider_id,))
+        services = cursor.fetchall()
+        
+        if services:
+            service_ids = [s['service_id'] for s in services]
+            # Step 2: Delete all bookings associated with those services
+            placeholders = ','.join(['%s'] * len(service_ids))
+            delete_bookings_query = f'DELETE FROM bookings WHERE service_id IN ({placeholders})'
+            cursor.execute(delete_bookings_query, tuple(service_ids))
+        
+        # Step 3: Delete all services offered by the provider
+        cursor.execute('DELETE FROM services WHERE provider_id = %s', (provider_id,))
+        
+        # Step 4: Revert accepted sponsorships back to 'open'
+        cursor.execute('''
+            UPDATE sponsorship_requests 
+            SET status = 'open', provider_id = NULL, accepted_at = NULL 
+            WHERE provider_id = %s
+        ''', (provider_id,))
+        
+        # Step 5: Delete the provider's user account
+        cursor.execute('DELETE FROM users WHERE user_id = %s', (provider_id,))
+        
+        mysql.connection.commit()
+        
+        flash('Your account and all associated data have been permanently deleted.', 'success')
+        
+        # Log the user out by clearing the session
+        session.clear()
+        
+        return redirect(url_for('login'))
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f'An error occurred while deleting your account: {e}', 'danger')
+        return redirect(url_for('provider_dashboard'))
+
 @app.route('/provider/sponsorships')
 def provider_sponsorships():
     if 'loggedin' not in session or session['role'] != 'provider':
@@ -361,4 +460,3 @@ def logout():
 
 if __name__ == '__main__':
     app.run(debug=True)
-

@@ -200,7 +200,30 @@ body {
     color: var(--dark);
     font-weight: 500;
 }
+/* Add to your existing CSS */
+.status-upcoming {
+    background-color: #28a745;
+}
 
+.status-live {
+    background-color: #dc3545;
+}
+
+.status-completed {
+    background-color: #6c757d;
+}
+
+.card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.dropdown-menu {
+    min-width: 150px;
+}
 /* Service cards */
 .service-card {
     border-left: 4px solid var(--deep-purple);

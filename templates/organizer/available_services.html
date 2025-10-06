@@ -1,0 +1,96 @@
+{% extends "base_dashboard.html" %}
+
+{% block title %}Available Services{% endblock %}
+
+{% block sidebar %}
+<div class="sidebar">
+    <div class="sidebar-brand">
+        <h3><i class="fas fa-user-circle me-2"></i>Organizer</h3>
+    </div>
+    <div class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i>Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('create_event') }}">
+                    <i class="fas fa-plus-circle"></i>Create Event
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_dashboard') }}">
+                    <i class="fas fa-calendar-check"></i>My Events
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('organizer_available_services') }}">
+                    <i class="fas fa-concierge-bell"></i>Available Services
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_bookings') }}">
+                    <i class="fas fa-bookmark"></i>My Bookings
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('organizer_sponsorships') }}">
+                    <i class="fas fa-handshake"></i>Sponsorships
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Available Services</h2>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Services from Providers</h5>
+    </div>
+    <div class="card-body">
+        {% if services %}
+            <div class="row">
+                {% for service in services %}
+                <div class="col-lg-6 col-xl-4 mb-4">
+                    <div class="card h-100 service-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title mb-0">{{ service.service_name }}</h6>
+                                <span class="badge bg-success">
+                                    {{ service.availability }}
+                                </span>
+                            </div>
+                            <p class="card-text mb-2">
+                                <i class="fas fa-tag me-2 text-primary"></i>
+                                <strong>Price:</strong> ${{ service.price }}
+                            </p>
+                            <p class="card-text">
+                                <i class="fas fa-user-tie me-2 text-primary"></i>
+                                <strong>Provider:</strong> {{ service.provider_name }}
+                            </p>
+                            {% if service.description %}
+                            <p class="card-text small text-muted mb-3">
+                                {{ service.description }}
+                            </p>
+                            {% endif %}
+                            </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Services Available</h4>
+                <p class="text-muted">There are currently no services available from providers.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
