@@ -49,48 +49,114 @@
     <h2 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Available Services</h2>
 </div>
 
-<div class="card">
-    <div class="card-header">
-        <h5 class="mb-0">Services from Providers</h5>
-    </div>
-    <div class="card-body">
-        {% if services %}
+{% if services_by_category %}
+    {% for category, services_in_category in services_by_category.items() %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">{{ category }}</h5>
+        </div>
+        <div class="card-body">
             <div class="row">
-                {% for service in services %}
+                {% for service in services_in_category %}
                 <div class="col-lg-6 col-xl-4 mb-4">
                     <div class="card h-100 service-card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <h6 class="card-title mb-0">{{ service.service_name }}</h6>
-                                <span class="badge bg-success">
-                                    {{ service.availability }}
-                                </span>
+                        <div class="card-body d-flex flex-column">
+                            <div>
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="card-title mb-0">{{ service.service_name }}</h6>
+                                    <span class="badge bg-success">
+                                        {{ service.availability }}
+                                    </span>
+                                </div>
+                                <p class="card-text mb-2">
+                                    <i class="fas fa-tag me-2 text-primary"></i>
+                                    <strong>Price:</strong> ${{ service.price }}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-user-tie me-2 text-primary"></i>
+                                    <strong>Provider:</strong> {{ service.provider_name }}
+                                </p>
+                                {% if service.description %}
+                                <p class="card-text small text-muted mb-3">
+                                    {{ service.description }}
+                                </p>
+                                {% endif %}
                             </div>
-                            <p class="card-text mb-2">
-                                <i class="fas fa-tag me-2 text-primary"></i>
-                                <strong>Price:</strong> ${{ service.price }}
-                            </p>
-                            <p class="card-text">
-                                <i class="fas fa-user-tie me-2 text-primary"></i>
-                                <strong>Provider:</strong> {{ service.provider_name }}
-                            </p>
-                            {% if service.description %}
-                            <p class="card-text small text-muted mb-3">
-                                {{ service.description }}
-                            </p>
-                            {% endif %}
+                            <div class="mt-auto">
+                                <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" 
+                                        data-bs-target="#bookServiceModal" 
+                                        data-service-id="{{ service.service_id }}"
+                                        data-service-name="{{ service.service_name }}">
+                                    <i class="fas fa-calendar-plus me-2"></i>Book Service
+                                </button>
                             </div>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
-        {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
-                <h4 class="text-muted">No Services Available</h4>
-                <p class="text-muted">There are currently no services available from providers.</p>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-concierge-bell fa-3x text-muted mb-3"></i>
+        <h4 class="text-muted">No Services Available</h4>
+        <p class="text-muted">There are currently no services available from providers.</p>
+    </div>
+{% endif %}
+
+<div class="modal fade" id="bookServiceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookServiceModalLabel">Book Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-        {% endif %}
+            <form id="bookingForm" method="POST" action="">
+                <div class="modal-body">
+                    <p>You are booking: <strong id="modalServiceName"></strong></p>
+                    <div class="mb-3">
+                        <label for="event_id" class="form-label">Select an event to book this service for:</label>
+                        <select name="event_id" class="form-select" required>
+                            <option value="">Choose an event...</option>
+                            {% for event in events %}
+                                <option value="{{ event.event_id }}">{{ event.event_name }} ({{ event.event_date.strftime('%Y-%m-%d') }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% if not events %}
+                        <div class="alert alert-warning">
+                            You have no upcoming events. <a href="{{ url_for('create_event') }}">Create an event</a> before booking a service.
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" {% if not events %}disabled{% endif %}>Confirm Booking</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+
+<script>
+// Script to pass service data to the booking modal
+document.addEventListener('DOMContentLoaded', function () {
+    var bookingModal = document.getElementById('bookServiceModal');
+    bookingModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var serviceId = button.getAttribute('data-service-id');
+        var serviceName = button.getAttribute('data-service-name');
+
+        var modalTitle = bookingModal.querySelector('.modal-title');
+        var modalServiceName = bookingModal.querySelector('#modalServiceName');
+        var form = bookingModal.querySelector('#bookingForm');
+
+        modalTitle.textContent = 'Book "' + serviceName + '"';
+        modalServiceName.textContent = '"' + serviceName + '"';
+        form.action = '/organizer/book_service/' + serviceId;
+    });
+});
+</script>
 {% endblock %}

@@ -4,6 +4,7 @@ import MySQLdb.cursors
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from collections import defaultdict
 
 app = Flask(__name__)
 
@@ -129,23 +130,52 @@ def organizer_available_services():
     # Get available services
     cursor.execute('SELECT s.*, u.name as provider_name FROM services s JOIN users u ON s.provider_id = u.user_id WHERE s.availability = "available"')
     services = cursor.fetchall()
+
+    # Group services by category
+    services_by_category = defaultdict(list)
+    categories = {
+        'Photo & Video': ['photo', 'video'],
+        # UPDATED LINE: Added 'buffet' and 'appetizer' to the list
+        'Catering & Food': ['catering', 'cake', 'food', 'buffet', 'appetizer'],
+        'Music & Entertainment': ['dj', 'mc', 'music'],
+        'Venue & Rentals': ['venue', 'hall', 'rental', 'chairs'],
+        'Logistics & Staffing': ['logistics', 'transport', 'staff','light','sound'],
+        'Decoration': ['decorations','flower']
+    }
+
+    for service in services:
+        service_name_lower = service['service_name'].lower()
+        assigned_category = 'Other Services'
+        for category, keywords in categories.items():
+            if any(keyword in service_name_lower for keyword in keywords):
+                assigned_category = category
+                break
+        services_by_category[assigned_category].append(service)
+
+    # Get organizer's events for the booking modal
+    cursor.execute('SELECT * FROM events WHERE organizer_id = %s AND status = "upcoming"', (session['user_id'],))
+    events = cursor.fetchall()
     
-    return render_template('organizer/available_services.html', services=services)
+    return render_template('organizer/available_services.html', services_by_category=services_by_category, events=events)
 
 @app.route('/organizer/book_service/<int:service_id>', methods=['POST'])
 def book_service(service_id):
     if 'loggedin' not in session or session['role'] != 'organizer':
         return redirect('/login')
     
-    event_id = request.form['event_id']
-    
+    event_id = request.form.get('event_id')
+
+    if not event_id:
+        flash('You must select an event to book a service for!', 'danger')
+        return redirect(url_for('organizer_available_services'))
+
     cursor = mysql.connection.cursor()
-    cursor.execute('INSERT INTO bookings (event_id, service_id) VALUES (%s, %s)',
-                 (event_id, service_id))
+    cursor.execute('INSERT INTO bookings (event_id, service_id, status) VALUES (%s, %s, %s)',
+                 (event_id, service_id, 'pending'))
     mysql.connection.commit()
     
-    flash('Service booked successfully!', 'success')
-    return redirect('/organizer/dashboard')
+    flash('Service booked successfully! The provider has been notified.', 'success')
+    return redirect(url_for('organizer_bookings'))
 
 @app.route('/organizer/bookings')
 def organizer_bookings():
@@ -295,6 +325,14 @@ def edit_service(service_id):
         description = request.form['description']
         availability = request.form['availability']
         
+        # Check if the service is being made unavailable
+        if availability == 'Not Available':
+            cursor.execute('SELECT * FROM bookings WHERE service_id = %s', (service_id,))
+            booking = cursor.fetchone()
+            if booking:
+                flash('Cannot make service unavailable as it has active bookings.', 'danger')
+                return redirect(url_for('edit_service', service_id=service_id))
+
         cursor.execute('UPDATE services SET service_name=%s, price=%s, description=%s, availability=%s WHERE service_id=%s AND provider_id=%s',
                      (service_name, price, description, availability, service_id, session['user_id']))
         mysql.connection.commit()
@@ -317,20 +355,25 @@ def delete_service(service_id):
         return redirect(url_for('login'))
     
     try:
-        cursor = mysql.connection.cursor()
-        # First, delete any child records (bookings) that reference this service
-        cursor.execute('DELETE FROM bookings WHERE service_id = %s', (service_id,))
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         
-        # Then, delete the parent record (service)
-        cursor.execute('DELETE FROM services WHERE service_id = %s AND provider_id = %s', (service_id, session['user_id']))
+        # Check if there are any bookings for this service
+        cursor.execute('SELECT * FROM bookings WHERE service_id = %s', (service_id,))
+        booking = cursor.fetchone()
         
-        mysql.connection.commit()
-        flash('Service and all associated bookings have been deleted successfully!', 'success')
+        if booking:
+            # If a booking exists, flash a message and do not delete
+            flash('Cannot delete this service as it has active bookings.', 'danger')
+        else:
+            # If no bookings exist, proceed with deletion
+            cursor.execute('DELETE FROM services WHERE service_id = %s AND provider_id = %s', (service_id, session['user_id']))
+            mysql.connection.commit()
+            flash('Service has been deleted successfully.', 'success')
+            
     except Exception as e:
-        # Rollback in case of an error
         mysql.connection.rollback()
-        flash(f'An error occurred while trying to delete the service: {e}', 'danger')
-    
+        flash(f'An error occurred: {e}', 'danger')
+        
     return redirect(url_for('provider_dashboard'))
 
 @app.route('/provider/delete_account')
